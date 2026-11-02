@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="無限賞">
+<meta name="theme-color" content="#7856eb">
+<title>錢包控制</title>
+<style>
+  body{margin:0;font-family:"Noto Sans TC",system-ui,sans-serif;background:#eef0f6;color:#14152b;display:flex;justify-content:center}
+  .box{width:min(420px,100%);padding:20px 16px}
+  h1{font-size:20px;margin:0 0 4px} p{margin:0 0 16px;color:#667;font-size:13px}
+  .card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px #0002}
+  .card b{display:block;margin-bottom:8px}
+  .big{font-size:30px;font-weight:900;margin-bottom:10px}
+  .r{display:flex;gap:6px;flex-wrap:wrap}
+  button{border:0;border-radius:18px;padding:8px 14px;font-weight:800;background:#14152b;color:#fff;cursor:pointer}
+  button.g{background:#e3e5f0;color:#14152b}
+  input{width:90px;padding:7px;border:1.5px solid #14152b;border-radius:8px;font-size:15px}
+  .st{font-size:12px;color:#667;margin-top:10px;min-height:16px}
+</style></head><body><div class="box">
+<h1>錢包控制</h1><p>在這裡調整點券、鑽石、優惠券，抽獎頁面（index.html）會立刻跟著變，不用重新整理。</p>
+<div id="w"></div><div class="st" id="st"></div>
+<script>
+const KEY = "infinite-kuji-v6";
+const FIELDS = [["coins","點券",[10,100,500]],["gems","鑽石",[10,100,500]],["coupons","優惠券（滿50折15）",[1,5]]];
+function rd(){ try{ return JSON.parse(localStorage.getItem(KEY)||"null"); }catch(e){ return null; } }
+function set(k, v){ const s = rd(); if(!s){ document.getElementById("st").textContent = "找不到抽獎頁面的資料，請先開啟 index.html（需同一個網址來源）"; return; }
+  s[k] = Math.max(0, Math.floor(+v || 0)); localStorage.setItem(KEY, JSON.stringify(s)); draw(); document.getElementById("st").textContent = "已更新 " + new Date().toLocaleTimeString(); }
+function draw(){ const s = rd() || {};
+  document.getElementById("w").innerHTML = FIELDS.map(([k, n, add]) => `<div class="card"><b>${n}</b><div class="big">${s[k] ?? 0}</div>
+    <div class="r">${add.map(a => `<button data-k="${k}" data-d="${a}">+${a}</button>`).join("")}<button class="g" data-k="${k}" data-z="1">扣光（歸零）</button>
+    <input type="number" min="0" id="i_${k}" value="${s[k] ?? 0}"><button class="g" data-k="${k}" data-s="1">設定</button></div></div>`).join(""); }
+document.addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; const s = rd() || {}, k = b.dataset.k;
+  if(b.dataset.d) set(k, (s[k] || 0) + +b.dataset.d); else if(b.dataset.z) set(k, 0); else if(b.dataset.s) set(k, document.getElementById("i_" + k).value); });
+addEventListener("storage", e => { if(e.key === KEY) draw(); });
+draw();
+</script></div><script>if("serviceWorker" in navigator && location.protocol.startsWith("http")) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
+</body></html>
